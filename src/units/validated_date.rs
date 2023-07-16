@@ -1,5 +1,5 @@
 use chrono::{Datelike, NaiveDate};
-use derive_more::{Display, From, Into};
+use derive_more::Display;
 
 use super::{InvalidDay, InvalidMonth, InvalidYear, ValidatedDay, ValidatedMonth, ValidatedYear};
 use thiserror::Error;
@@ -22,8 +22,13 @@ pub enum InvalidDate {
     },
 }
 
-#[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Display, Clone, Copy, Into, From)]
-pub struct ValidatedDate(NaiveDate);
+#[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Display, Clone, Copy)]
+#[display(fmt = "{}.{}.{}", year, month, day)]
+pub struct ValidatedDate {
+    year: ValidatedYear,
+    month: ValidatedMonth,
+    day: ValidatedDay,
+}
 
 impl ValidatedDate {
     pub fn new(
@@ -32,10 +37,10 @@ impl ValidatedDate {
         day: ValidatedDay,
     ) -> Result<Self, InvalidDate> {
         let year_u32: u32 = year.into();
-        let date = NaiveDate::from_ymd_opt(year_u32 as i32, month.into(), day.into())
+        _ = NaiveDate::from_ymd_opt(year_u32 as i32, month.into(), day.into())
             .ok_or(InvalidDate::WrongDate { year, month, day })?;
 
-        Ok(Self(date))
+        Ok(Self { year, month, day })
     }
 
     pub fn from_ymd(year: u32, month: u32, day: u32) -> Result<Self, InvalidDate> {
@@ -54,17 +59,91 @@ impl ValidatedDate {
                 day: day_of_year,
             })?;
 
-        Ok(Self(ordianal_date))
+        let (month, day) = (
+            ordianal_date.month().try_into().unwrap(),
+            ordianal_date.day().try_into().unwrap(),
+        );
+        Ok(Self { year, month, day })
     }
 
     pub fn day(&self) -> u32 {
-        self.0.day()
+        self.day.into()
     }
     pub fn month(&self) -> u32 {
-        self.0.month()
+        self.month.into()
     }
     pub fn year(&self) -> u32 {
-        self.0.year() as u32
+        self.year.into()
+    }
+
+    pub fn validated_day(&self) -> ValidatedDay {
+        self.day
+    }
+    pub fn validated_month(&self) -> ValidatedMonth {
+        self.month
+    }
+    pub fn validated_year(&self) -> ValidatedYear {
+        self.year
+    }
+}
+
+impl From<ValidatedDate> for (u32, u32, u32) {
+    fn from(value: ValidatedDate) -> Self {
+        (value.year(), value.month(), value.day())
+    }
+}
+impl From<ValidatedDate> for (ValidatedYear, ValidatedMonth, ValidatedDay) {
+    fn from(value: ValidatedDate) -> Self {
+        (
+            value.validated_year(),
+            value.validated_month(),
+            value.validated_day(),
+        )
+    }
+}
+impl TryFrom<(u32, u32, u32)> for ValidatedDate {
+    type Error = InvalidDate;
+    fn try_from((year, month, day): (u32, u32, u32)) -> Result<Self, Self::Error> {
+        Self::from_ymd(year, month, day)
+    }
+}
+impl TryFrom<(ValidatedYear, ValidatedMonth, ValidatedDay)> for ValidatedDate {
+    type Error = InvalidDate;
+    fn try_from(
+        (year, month, day): (ValidatedYear, ValidatedMonth, ValidatedDay),
+    ) -> Result<Self, Self::Error> {
+        Self::new(year, month, day)
+    }
+}
+
+#[cfg(feature = "chrono")]
+pub mod for_chrono {
+    use crate::units::ValidatedDate;
+    use chrono::{Datelike, NaiveDate};
+
+    impl From<NaiveDate> for ValidatedDate {
+        fn from(value: NaiveDate) -> Self {
+            let (year, month, day) = (
+                value.year_ce().1.try_into().unwrap(),
+                value.month().try_into().unwrap(),
+                value.day().try_into().unwrap(),
+            );
+            Self { year, month, day }
+        }
+    }
+    impl From<ValidatedDate> for NaiveDate {
+        fn from(value: ValidatedDate) -> Self {
+            let year: i32 = value
+                .year()
+                .try_into()
+                .expect("Could not cast postive year into i32 for chrono date");
+            let (year, month, day) = (
+                year,
+                value.month().try_into().unwrap(),
+                value.day().try_into().unwrap(),
+            );
+            Self::from_ymd_opt(year, month, day).unwrap()
+        }
     }
 }
 
@@ -94,7 +173,8 @@ mod testing {
 
         match ValidatedDate::new(validated_year, validated_month, validated_day) {
             Ok(date) => {
-                let actual_date: NaiveDate = date.into();
+                let (year, month, day): (u32, u32, u32) = date.into();
+                let actual_date = NaiveDate::from_ymd_opt(year as i32, month, day).unwrap();
                 assert_eq!(
                     actual_date,
                     NaiveDate::from_ymd_opt(year as i32, month, day).expect("")

@@ -9,6 +9,12 @@ pub struct InvalidYear(pub u32);
 #[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Display, Clone, Copy, Into)]
 pub struct ValidatedYear(u32);
 
+impl ValidatedYear {
+    pub fn new(to_validate: u32) -> Result<Self, InvalidYear> {
+        to_validate.try_into()
+    }
+}
+
 impl TryFrom<u32> for ValidatedYear {
     type Error = InvalidYear;
 

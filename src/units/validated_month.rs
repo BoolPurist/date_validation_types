@@ -14,6 +14,12 @@ pub struct InvalidMonth(pub u32);
 #[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Display, Clone, Copy, Into)]
 pub struct ValidatedMonth(u32);
 
+impl ValidatedMonth {
+    pub fn new(to_validated: u32) -> Result<Self, InvalidMonth> {
+        to_validated.try_into()
+    }
+}
+
 impl TryFrom<u32> for ValidatedMonth {
     type Error = InvalidMonth;
     fn try_from(value: u32) -> Result<Self, Self::Error> {

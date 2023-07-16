@@ -1,12 +1,14 @@
 //! # Purpose
 //!
-//! - Types for validating if a u32 value is valid for a  day, month or year.
-//! - Type to for a valid date coming from simple integer value
+//! - Types for validating if a u32 value is valid for a day, month or year.
+//! - Types for a valid date coming from simple integer value
 //!
 //! # Example
 //!
+//! ## Usage
+//!
 //! ```rust
-//! use date_validation_types::{
+//! use date_validation_types::units::{
 //!     InvalidDay, InvalidMonth, InvalidYear, ValidatedDate, ValidatedDay, ValidatedMonth,
 //!     ValidatedYear,
 //! };
@@ -34,7 +36,16 @@
 //! ```
 
 mod constants;
-mod units;
+pub mod units;
 
-pub use chrono::NaiveDate;
-pub use units::*;
+#[cfg(feature = "chrono")]
+pub use crate::units::for_chrono;
+#[cfg(feature = "chrono")]
+pub use chrono;
+
+pub mod prelude {
+    #[cfg(feature = "chrono")]
+    pub use crate::for_chrono;
+
+    pub use crate::units::*;
+}
