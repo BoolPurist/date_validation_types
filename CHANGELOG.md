@@ -19,5 +19,9 @@ behind the feature "chrono"
 
 - Errors for invalid year, month and day now show the wrong value instead of zero. 
 
+### Changed 
+
+- Reexport of chrono is now behind the compile feature "chrono"
+
 ## 1.0.0 - 2023.06.29
 
