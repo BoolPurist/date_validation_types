@@ -3,7 +3,12 @@ use derive_more::{Display, Into};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-#[error("Day {} is not between {} and {}", 0, DAY_LOWER_BOUND, DAY_UPPER_BOUND)]
+#[error(
+    "Day {} is not between {} and {}",
+    _0,
+    DAY_LOWER_BOUND,
+    DAY_UPPER_BOUND
+)]
 pub struct InvalidDay(pub u32);
 
 #[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Display, Clone, Copy, Into)]
@@ -35,6 +40,16 @@ mod testing {
     fn should_accept_valid_days() {
         for month_index in 1..=31 {
             testing_utitliy::assert_accept_valid_unit::<ValidatedDay>(month_index);
+        }
+    }
+
+    #[test]
+    fn invalid_day_correct_error_msg() {
+        let invalid = ValidatedDay::new(40);
+        if let Err(error) = invalid {
+            assert_eq!("Day 40 is not between 1 and 31", error.to_string());
+        } else {
+            panic!("Should have resulted into an error for an invalid day");
         }
     }
 

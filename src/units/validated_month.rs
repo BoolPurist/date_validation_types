@@ -5,7 +5,7 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 #[error(
     "Month {} is not between {} and {}",
-    0,
+    _0,
     MONTH_LOWER_BOUND,
     MONTH_UPPER_BOUND
 )]
@@ -40,6 +40,14 @@ mod testing {
     fn should_accept_valid_month() {
         for month_index in 1..=12 {
             testing_utitliy::assert_accept_valid_unit::<ValidatedMonth>(month_index);
+        }
+    }
+    #[test]
+    fn invalid_month_correct_err_msg() {
+        if let Err(error) = ValidatedMonth::new(13) {
+            assert_eq!("Month 13 is not between 1 and 12", error.to_string());
+        } else {
+            panic!("Should have resulted into an error for an invalid month");
         }
     }
 

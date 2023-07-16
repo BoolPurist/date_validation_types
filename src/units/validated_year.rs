@@ -3,7 +3,7 @@ use derive_more::{Display, Into};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-#[error("Year {} highter than {}", 0, *YEAR_UPPER_BOUND)]
+#[error("Year {} is invalid and higher than {}", _0, *YEAR_UPPER_BOUND)]
 pub struct InvalidYear(pub u32);
 
 #[derive(Debug, PartialEq, PartialOrd, Ord, Eq, Display, Clone, Copy, Into)]
@@ -41,6 +41,19 @@ mod testing {
         testing_utitliy::assert_accept_valid_unit::<ValidatedYear>(2030);
         testing_utitliy::assert_accept_valid_unit::<ValidatedYear>(1625);
         testing_utitliy::assert_accept_valid_unit::<ValidatedYear>(*YEAR_UPPER_BOUND);
+    }
+
+    #[test]
+    fn invalid_year_correct_err_msg() {
+        let invalid = ValidatedYear::new(u32::MAX);
+        if let Err(error) = invalid {
+            assert_eq!(
+                "Year 4294967295 is invalid and higher than 262143",
+                error.to_string()
+            );
+        } else {
+            panic!("Should have resulted into an error for an invalid year");
+        }
     }
 
     #[test]

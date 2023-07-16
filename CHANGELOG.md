@@ -15,5 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added conversion via From trait between ValidatedDate and NaiveDate of chrono
 behind the feature "chrono"
 
+### Fixed
+
+- Errors for invalid year, month and day now show the wrong value instead of zero. 
+
 ## 1.0.0 - 2023.06.29
 
